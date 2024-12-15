@@ -1,55 +1,82 @@
+let wavesurfer, audioContext, recorder, chunks = [];
+let sentimentChart;
 
-let wavesurfer, audioContext, analyser, dataArray, recordingSeconds = 0;
-const rmsDisplay = document.getElementById('rms');
-const centroidDisplay = document.getElementById('centroid');
-const engagementDisplay = document.getElementById('engagement');
-const chart = new Chart(document.getElementById('chart'), {
-    type: 'line',
-    data: { labels: [], datasets: [{ label: 'RMS', data: [], borderColor: '#28a745' }] },
-    options: { responsive: true, maintainAspectRatio: false }
+// Initialize WaveSurfer
+document.addEventListener("DOMContentLoaded", () => {
+    wavesurfer = WaveSurfer.create({
+        container: "#waveform",
+        waveColor: "lime",
+        progressColor: "green"
+    });
 });
 
-function uploadAudio() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'audio/*';
-    input.onchange = async () => {
-        const formData = new FormData();
-        formData.append('audio', input.files[0]);
-        const res = await fetch('http://localhost:3000/upload-audio', { method: 'POST', body: formData });
-        const data = await res.json();
-        updateMetrics(data.metrics);
+// Upload Audio File
+document.getElementById("uploadButton").addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "audio/*";
+    input.onchange = (event) => {
+        const file = event.target.files[0];
+        wavesurfer.load(URL.createObjectURL(file));
     };
     input.click();
-}
+});
 
-function startRecording() {
+// Start Recording
+document.getElementById("startRecordButton").addEventListener("click", () => {
     navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
         audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-        analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        setupWaveform(stream);
+        recorder = new MediaRecorder(stream);
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.start();
+
+        document.getElementById("startRecordButton").disabled = true;
+        document.getElementById("stopRecordButton").disabled = false;
     });
-}
+});
 
-function stopRecording() {
-    audioContext.close();
-}
+// Stop Recording
+document.getElementById("stopRecordButton").addEventListener("click", () => {
+    recorder.stop();
+    recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/wav" });
+        wavesurfer.load(URL.createObjectURL(blob));
 
-function setupWaveform(stream) {
-    wavesurfer = WaveSurfer.create({ container: '#waveform', waveColor: 'green', interact: false });
-    wavesurfer.microphone = WaveSurfer.microphone.create({ wavesurfer });
-    wavesurfer.microphone.start();
-}
+        document.getElementById("startRecordButton").disabled = false;
+        document.getElementById("stopRecordButton").disabled = true;
+    };
+});
 
-function updateMetrics(metrics) {
-    rmsDisplay.textContent = metrics.rms;
-    centroidDisplay.textContent = metrics.spectralCentroid;
-    engagementDisplay.textContent = metrics.engagementScore;
-    chart.data.labels.push(new Date().toLocaleTimeString());
-    chart.data.datasets[0].data.push(metrics.rms);
-    chart.update();
+// Analyze Audio and Sentiment
+document.getElementById("analyzeButton").addEventListener("click", () => {
+    alert("Analyzing audio...");
+    fetch("http://localhost:5000/analyze_audio", {
+        method: "POST",
+        body: new FormData().append("audio", new Blob(chunks, { type: "audio/wav" }))
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("transcription").innerText = data.transcription;
+        document.getElementById("positive").innerText = data.sentiment.pos;
+        document.getElementById("neutral").innerText = data.sentiment.neu;
+        document.getElementById("negative").innerText = data.sentiment.neg;
+        updateSentimentChart(data.sentiment);
+    });
+});
+
+// Sentiment Chart
+function updateSentimentChart(sentiment) {
+    if (sentimentChart) sentimentChart.destroy();
+    const ctx = document.getElementById("sentimentChart").getContext("2d");
+    sentimentChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: ["Positive", "Neutral", "Negative"],
+            datasets: [{
+                label: "Sentiment Scores",
+                data: [sentiment.pos, sentiment.neu, sentiment.neg],
+                backgroundColor: ["#28a745", "#ffc107", "#dc3545"]
+            }]
+        }
+    });
 }
