@@ -1,3 +1,4 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #121212;
@@ -6,24 +7,27 @@ body {
     padding: 0;
 }
 
+/* Header Styles */
 header {
     background: #1f1f1f;
-    color: #fff;
+    color: #ffffff;
     text-align: center;
     padding: 20px;
 }
 
+/* Section Styles */
 section {
     margin: 20px auto;
     text-align: center;
 }
 
+/* Button Styles */
 button {
     padding: 10px 20px;
     margin: 5px;
     border: none;
     background-color: #28a745;
-    color: #fff;
+    color: #ffffff;
     border-radius: 5px;
     cursor: pointer;
     transition: background 0.3s;
@@ -33,9 +37,10 @@ button:hover {
     background-color: #218838;
 }
 
+/* Footer Styles */
 footer {
     background: #1f1f1f;
-    color: #aaa;
+    color: #aaaaaa;
     text-align: center;
     padding: 10px 0;
 }
