@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EngageSense</title>
+    <link rel="stylesheet" href="styles.min.css">
+    <script src="https://unpkg.com/wavesurfer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="scripts.min.js" defer></script>
+</head>
+<body>
+<header>EngageSense - Real-Time Audio Engagement Analyzer</header>
+<main>
+    <section>
+        <h2>Upload or Record Audio</h2>
+        <button onclick="uploadAudio()">Upload Audio</button>
+        <button onclick="startRecording()">Start Recording</button>
+        <button onclick="stopRecording()" id="stopBtn" disabled>Stop Recording</button>
+    </section>
+    <section>
+        <h3>Waveform Visualization</h3>
+        <div id="waveform" style="height: 150px; border: 2px solid #28a745;"></div>
+    </section>
+    <section>
+        <h3>Engagement Metrics</h3>
+        <p>RMS (Loudness): <strong id="rms">N/A</strong></p>
+        <p>Spectral Centroid: <strong id="centroid">N/A</strong></p>
+        <p>Engagement Score: <strong id="engagement">N/A</strong></p>
+    </section>
+    <section>
+        <h3>Real-Time Analysis</h3>
+        <canvas id="metricsChart" width="400" height="200"></canvas>
+    </section>
+</main>
+</body>
+</html>
